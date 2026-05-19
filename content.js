@@ -84,9 +84,25 @@ function processMicrosoftTeamsLegendas() {
       if (prevSpeakerEl && prevSpeakerEl.innerText.trim()) {
         speaker = prevSpeakerEl.innerText.trim();
       }
+    } else {
+       // Fallback agressivo: no Teams web, as legendas costumam ser [Imagem] [Span Orador] [Span Texto]
+       const spans = lastBlock.querySelectorAll('span');
+       if (spans.length >= 2) {
+          speaker = spans[0].innerText.trim() || speaker;
+       }
     }
     
-    const text = textEl ? (textEl.innerText || textEl.textContent).trim() : (lastBlock.innerText || lastBlock.textContent).trim();
+    let text = "";
+    if (textEl) {
+       text = (textEl.innerText || textEl.textContent).trim();
+    } else {
+       const spans = lastBlock.querySelectorAll('span');
+       if (spans.length >= 2) {
+          text = Array.from(spans).slice(1).map(s => s.innerText || s.textContent).join(' ').trim();
+       } else {
+          text = (lastBlock.innerText || lastBlock.textContent).trim();
+       }
+    }
     
     if (text) {
       addTextToLog(speaker, text);
@@ -111,23 +127,39 @@ function processMicrosoftTeamsLegendas() {
   }
 }
 
+// Para corrigir a duplicação quando o Teams atualiza frases, vamos guardar a frase confirmada
+let confirmedLog = "";
+
 function addTextToLog(speaker, text) {
   text = text.trim();
-  if (!text || text === lastText) return;
+  if (!text) return;
   const timestamp = new Date().toLocaleTimeString();
   
+  // Se mudou de pessoa, "salva" a frase anterior no log confirmado e inicia um novo bloco
   if (speaker !== lastSpeaker) {
-    transcriptionLog += `\n[${timestamp}] ${speaker}:\n`;
+    if (lastSpeaker !== "") {
+      confirmedLog += ` ${lastText}\n`;
+    }
+    confirmedLog += `\n[${timestamp}] ${speaker}:\n`;
     lastSpeaker = speaker;
-  }
-  
-  if (text.startsWith(lastText) && lastText !== "") {
-    const newChunk = text.substring(lastText.length).trim();
-    if (newChunk) transcriptionLog += " " + newChunk;
+    lastText = text;
   } else {
-    transcriptionLog += ` ${text}`;
+    // Se for a mesma pessoa falando, verifica se a nova frase é apenas uma atualização/correção da antiga
+    // Se a nova frase compartilha palavras iniciais com a anterior ou se tem tamanho parecido, ela provavelmente está substituindo a última.
+    const lastWords = lastText.split(' ').slice(0, 3).join(' ');
+    const newWords = text.split(' ').slice(0, 3).join(' ');
+    
+    if (lastWords === newWords || text.includes(lastText) || lastText.includes(text) || Math.abs(text.length - lastText.length) < 20) {
+       // Atualiza a frase atual (substitui a anterior)
+       lastText = text;
+    } else {
+       // É uma frase inteiramente nova da mesma pessoa
+       confirmedLog += ` ${lastText}`;
+       lastText = text;
+    }
   }
   
-  lastText = text;
+  // O buffer é o log confirmado + a frase que está sendo falada e atualizada no momento
+  transcriptionLog = confirmedLog + ` ${lastText}`;
   chrome.storage.local.set({ transcriptionBuffer: transcriptionLog });
 }
