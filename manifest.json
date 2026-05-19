@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "Transcritor de Reuniões (Meet & Teams)",
+  "version": "1.0",
+  "description": "Transcreve reuniões do Google Meet e Microsoft Teams a partir das legendas da página e exporta para TXT.",
+  "permissions": [
+    "storage",
+    "downloads",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "https://teams.live.com/*",
+    "https://teams.microsoft.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "32": "assets/icon32.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "32": "assets/icon32.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

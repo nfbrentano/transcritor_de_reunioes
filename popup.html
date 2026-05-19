@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; width: 280px; margin: 0; padding: 15px; background-color: #f4f6f9; color: #333; }
+    h3 { margin-top: 0; color: #1a73e8; text-align: center; font-size: 16px; }
+    .status-container { background: #fff; padding: 10px; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; text-align: center; font-size: 13px; }
+    #status { font-weight: bold; color: #5f6368; }
+    .btn { display: block; width: 100%; padding: 10px; margin-bottom: 8px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; transition: background 0.2s; font-size: 13px; }
+    .btn-start { background-color: #34a853; color: white; }
+    .btn-start:hover { background-color: #2d9247; }
+    .btn-stop { background-color: #ea4335; color: white; }
+    .btn-stop:hover { background-color: #d3382b; }
+    .footer { font-size: 10px; text-align: center; color: #9aa0a6; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h3>Transcritor de Reuniões</h3>
+  <div class="status-container">Status: <span id="status">Inativo</span></div>
+  <button id="startBtn" class="btn btn-start">Iniciar Transcrição</button>
+  <button id="stopBtn" class="btn btn-stop">Parar e Salvar TXT</button>
+  <div class="footer">Certifique-se de ativar as legendas na reunião.</div>
+  <script src="popup.js"></script>
+</body>
+</html>
