@@ -65,26 +65,48 @@ function processGoogleMeetLegendas() {
 }
 
 function processMicrosoftTeamsLegendas() {
-  // Modern Teams uses these data-tids
+  // Tentativa 1: O Teams geralmente agrupa legendas em blocos (linhas)
+  const captionBlocks = document.querySelectorAll('[data-tid="closed-caption-line"], .ui-chat__message, .fui-Flex');
+  
+  if (captionBlocks.length > 0) {
+    const lastBlock = captionBlocks[captionBlocks.length - 1];
+    
+    // Procura pelo nome do orador dentro ou perto do bloco
+    const speakerEl = lastBlock.querySelector('[data-tid="closed-caption-speaker"], [data-tid="caption-speaker"], .ui-chat__message-author');
+    const textEl = lastBlock.querySelector('[data-tid="closed-caption-text"], [data-tid="caption-text"], .ui-chat__message-content');
+    
+    let speaker = "Participante";
+    if (speakerEl && speakerEl.innerText.trim()) {
+      speaker = speakerEl.innerText.trim();
+    } else if (lastBlock.previousElementSibling) {
+      // As vezes o orador fica no elemento anterior
+      const prevSpeakerEl = lastBlock.previousElementSibling.querySelector('[data-tid="closed-caption-speaker"]');
+      if (prevSpeakerEl && prevSpeakerEl.innerText.trim()) {
+        speaker = prevSpeakerEl.innerText.trim();
+      }
+    }
+    
+    const text = textEl ? (textEl.innerText || textEl.textContent).trim() : (lastBlock.innerText || lastBlock.textContent).trim();
+    
+    if (text) {
+      addTextToLog(speaker, text);
+      return;
+    }
+  }
+
+  // Tentativa 2: Teams mais moderno usando listas separadas e planas de oradores e textos
   const modernCaptions = document.querySelectorAll('[data-tid="closed-caption-text"]');
   const modernSpeakers = document.querySelectorAll('[data-tid="closed-caption-speaker"]');
   
   if (modernCaptions.length > 0) {
-     const lastIdx = modernCaptions.length - 1;
-     const speaker = modernSpeakers.length > lastIdx ? modernSpeakers[lastIdx].innerText : "Participante";
-     const text = modernCaptions[lastIdx].innerText;
-     if (text && text.trim()) addTextToLog(speaker, text);
-  } else {
-    // Fallback for older Teams interfaces
-    const captionLines = document.querySelectorAll('.ui-chat__message, [data-tid="closed-caption-line"]');
-    if (captionLines.length > 0) {
-      const lastLine = captionLines[captionLines.length - 1];
-      const speakerEl = lastLine.querySelector('.ui-chat__message-author, [data-tid="caption-speaker"]');
-      const textEl = lastLine.querySelector('.ui-chat__message-content, [data-tid="caption-text"]');
-      
-      const speaker = speakerEl ? speakerEl.innerText : "Participante";
-      const text = textEl ? textEl.innerText : lastLine.innerText;
-      if (text && text.trim()) addTextToLog(speaker, text);
+    const lastIdx = modernCaptions.length - 1;
+    // O número de oradores pode não bater com os textos, assumimos que o último orador encontrado está falando
+    const speaker = modernSpeakers.length > 0 ? modernSpeakers[modernSpeakers.length - 1].innerText.trim() : "Participante";
+    const text = (modernCaptions[lastIdx].innerText || modernCaptions[lastIdx].textContent).trim();
+    
+    if (text) {
+      addTextToLog(speaker, text);
+      return;
     }
   }
 }
